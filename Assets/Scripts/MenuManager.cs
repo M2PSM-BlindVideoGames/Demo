@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MenuManager : MonoBehaviour {
 
@@ -14,8 +15,16 @@ public class MenuManager : MonoBehaviour {
     Button yesBtn;
     Button noBtn;
 
+    public GameObject optionPanel;
+    Slider _volumeSlider;
+
+    delegate void btnDelegate();
+    private List<btnDelegate> btnMethods;
+
 	// Use this for initialization
 	void Start () {
+        _volumeSlider = optionPanel.transform.GetChild(0).GetComponent<Slider>();
+
         InitializeConfirmationsButtons();
         InitializeMenuButtons();
     }
@@ -30,14 +39,18 @@ public class MenuManager : MonoBehaviour {
         yesBtn = confirmationPanel.transform.GetChild(0).GetComponent<Button>();
         noBtn = confirmationPanel.transform.GetChild(1).GetComponent<Button>();
 
-        confirmationPanel.SetActive(false);
+        OpenPanel(confirmationPanel, false);
     }
     /*********************************************************/
 
     void InitializeMenuButtons() {
         leftBtn.interactable = false;
         rightBtn.interactable = false;
-        centralBtn.onClick.AddListener(() => Btn_LaunchNewGame());
+
+        btnMethods = new List<btnDelegate>();
+        btnMethods.Add(Btn_LaunchNewGame);
+        btnMethods.Add(Btn_OpenVolumePanel);
+        centralBtn.onClick.AddListener(() => btnMethods[0]());
     }
     /*********************************************************/
 
@@ -46,13 +59,28 @@ public class MenuManager : MonoBehaviour {
     }
     /*********************************************************/
 
-    public void Btn_OpenConfirmationPanel() {
-        confirmationPanel.SetActive(true);
+    void OpenPanel(GameObject a_panel, bool a_isClosed = true) {
+        a_panel.GetComponent<CanvasGroup>().alpha = a_isClosed ? 1 : 0;
+        a_panel.GetComponent<CanvasGroup>().interactable = a_isClosed;
+        a_panel.GetComponent<CanvasGroup>().blocksRaycasts = a_isClosed;
     }
     /*********************************************************/
 
+    void Btn_OpenVolumePanel() {
+        OpenPanel(optionPanel);
+    }
+    /*********************************************************/
+    void Btn_CloseVolumePanel() {
+        OpenPanel(optionPanel, false);
+    }
+    /*********************************************************/
+
+    public void Btn_OpenConfirmationPanel() {
+        OpenPanel(confirmationPanel);
+    }
+    /*********************************************************/
     public void Btn_CloseConfirmationPanel() {
-        confirmationPanel.SetActive(false);
+        OpenPanel(confirmationPanel, false);
     }
     /*********************************************************/
 
