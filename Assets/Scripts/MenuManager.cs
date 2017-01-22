@@ -20,10 +20,11 @@ public class MenuManager : MonoBehaviour {
 
     delegate void btnDelegate();
     private List<btnDelegate> btnMethods;
+    private int _currentIndex;
 
 	// Use this for initialization
 	void Start () {
-        _volumeSlider = optionPanel.transform.GetChild(0).GetComponent<Slider>();
+        _volumeSlider = optionPanel.transform.GetChild(1).GetComponent<Slider>();
 
         InitializeConfirmationsButtons();
         InitializeMenuButtons();
@@ -45,12 +46,14 @@ public class MenuManager : MonoBehaviour {
 
     void InitializeMenuButtons() {
         leftBtn.interactable = false;
-        rightBtn.interactable = false;
+        rightBtn.interactable = true;
 
         btnMethods = new List<btnDelegate>();
         btnMethods.Add(Btn_LaunchNewGame);
         btnMethods.Add(Btn_OpenVolumePanel);
-        centralBtn.onClick.AddListener(() => btnMethods[0]());
+        _currentIndex = 0;
+        centralBtn.onClick.AddListener(() => btnMethods[_currentIndex]());
+        rightBtn.onClick.AddListener(() => Btn_Next());
     }
     /*********************************************************/
 
@@ -66,11 +69,39 @@ public class MenuManager : MonoBehaviour {
     }
     /*********************************************************/
 
+    void Btn_Next() {
+        _currentIndex++;
+        centralBtn.onClick.RemoveAllListeners();
+        centralBtn.onClick.AddListener(() => btnMethods[_currentIndex]());
+
+        leftBtn.interactable = true;
+        leftBtn.onClick.RemoveAllListeners();
+        leftBtn.onClick.AddListener(() => Btn_Previous());
+
+        if (_currentIndex == btnMethods.Count-1)
+            rightBtn.interactable = false;
+    }
+    /*********************************************************/
+
+    void Btn_Previous() {
+        _currentIndex--;
+        centralBtn.onClick.RemoveAllListeners();
+        centralBtn.onClick.AddListener(() => btnMethods[_currentIndex]());
+
+        rightBtn.interactable = true;
+        rightBtn.onClick.RemoveAllListeners();
+        rightBtn.onClick.AddListener(() => Btn_Next());
+
+        if (_currentIndex == 0)
+            leftBtn.interactable = false;
+    }
+    /*********************************************************/
+
     void Btn_OpenVolumePanel() {
         OpenPanel(optionPanel);
     }
     /*********************************************************/
-    void Btn_CloseVolumePanel() {
+    public void Btn_CloseVolumePanel() {
         OpenPanel(optionPanel, false);
     }
     /*********************************************************/
