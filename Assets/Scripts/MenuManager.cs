@@ -22,9 +22,12 @@ public class MenuManager : MonoBehaviour {
     private List<btnDelegate> btnMethods;
     private int _currentIndex;
 
+    private LP_Movements _lpMvts;
+
 	// Use this for initialization
 	void Start () {
         _volumeSlider = optionPanel.transform.GetChild(1).GetComponent<Slider>();
+        _lpMvts = GetComponent<LP_Movements>();
 
         InitializeConfirmationsButtons();
         InitializeMenuButtons();
@@ -33,6 +36,30 @@ public class MenuManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
+        if(_lpMvts.L_hand.activeSelf) {
+            if(_lpMvts.IsRightMvtChecked() && rightBtn.interactable) {
+                Btn_Next();
+            }
+            else if (_lpMvts.IsLeftMvtChecked() && leftBtn.interactable) {
+                Btn_Previous();
+            }
+            else if (_lpMvts.IsCloseMenuChecked()) {
+                if (optionPanel.activeSelf) {
+                    OpenPanel(optionPanel, false);
+                } else {
+                    OpenPanel(confirmationPanel);
+                }
+            }
+            else if(confirmationPanel.activeSelf) {
+                if(_lpMvts.IsYesMvtChecked()) {
+                    Application.Quit();
+                }
+                else if (_lpMvts.IsNoMvtChecked()) {
+                    OpenPanel(confirmationPanel, false);
+                }
+            }
+        } else {
+        }
     }
     /*********************************************************/
 
