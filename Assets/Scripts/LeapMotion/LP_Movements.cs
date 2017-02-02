@@ -44,9 +44,9 @@ public class LP_Movements : MonoBehaviour {
     float _sliderValue;
     public float GetSliderValue() { return _sliderValue; }
 
-    ///////////////////////////////////////////////////////////////
-    /// GENERAL FUNCTIONS /////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+/// GENERAL FUNCTIONS /////////////////////////////////////////
+///////////////////////////////////////////////////////////////
     void Start () {
         InitializeFingers();
 	}
@@ -54,6 +54,8 @@ public class LP_Movements : MonoBehaviour {
 	
 	void Update () {
         if(L_hand.activeSelf && R_hand.activeSelf) {
+            UpdateFingersPositions();
+
             CheckForwardMovement();
             CheckBackMovement();
             CheckRightMovement();
@@ -81,6 +83,9 @@ public class LP_Movements : MonoBehaviour {
         for(int i = 0; i < R_fingers.Length; i++) {
             R_fingers[i] = R_hand.transform.GetChild(i).GetChild(2).gameObject;         // bone3
         }
+
+        L_fingersPos = new Vector3[5];
+        R_fingersPos = new Vector3[5];
     }
     /*********************************************************/
 
@@ -121,112 +126,85 @@ public class LP_Movements : MonoBehaviour {
     /*********************************************************/
 
     void CheckForwardMovement() {
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-
         Vector3 distanceRFingers = CalculDistance(R_fingersPos[0], R_fingersPos[1]);
         Vector3 distanceLFingers = CalculDistance(L_fingersPos[0], L_fingersPos[1]);
         Vector3 distanceRLFingers = CalculDistance(R_fingersPos[0], L_fingersPos[1]);
 
-        Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLFingers);
+        //Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLFingers);
         bool movementChecked = false;
         _isForwardMvtChecked = movementChecked;
     }
     /*********************************************************/
 
     void CheckBackMovement() {
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-
         Vector3 distanceRFingers = CalculDistance(R_fingersPos[0], R_fingersPos[1]);
         Vector3 distanceLFingers = CalculDistance(L_fingersPos[0], L_fingersPos[1]);
         Vector3 distanceRLFingers = CalculDistance(R_fingersPos[1], L_fingersPos[0]);
 
-        Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLFingers);
+        //Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLFingers);
         bool movementChecked = false;
         _isBackMvtChecked = movementChecked;
     }
     /*********************************************************/
 
+    // Check if distance between R_thumb and L_thumb > 0.25f
     void CheckRightMovement() {
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-
-        Vector3 distanceRFingers = CalculDistance(R_fingersPos[0], R_fingersPos[1]);
-        Vector3 distanceLFingers = CalculDistance(L_fingersPos[0], L_fingersPos[1]);
         Vector3 distanceRLThumbs = CalculDistance(R_fingersPos[0], L_fingersPos[0]);
-        Vector3 distanceRLIndexs = CalculDistance(R_fingersPos[1], L_fingersPos[1]);
 
-        Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLThumbs + " - " + distanceRLIndexs);
-        bool movementChecked = false;
+       // Debug.Log(/*distanceRFingers.magnitude + " - " + distanceLFingers.magnitude + " - " +*/ distanceRLThumbs.magnitude /*+ " - " + distanceRLIndexs.magnitude*/);
+        bool movementChecked = ( distanceRLThumbs.magnitude > 0.25);
         _isRightMvtChecked = movementChecked;
     }
     /*********************************************************/
 
+    // Check if distance between R_index and L_thumb < 0.03f
     void CheckLeftMovement() {
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-
-        Vector3 distanceRFingers = CalculDistance(R_fingersPos[0], R_fingersPos[1]);
-        Vector3 distanceLFingers = CalculDistance(L_fingersPos[0], L_fingersPos[1]);
-        Vector3 distanceRLThumbs = CalculDistance(R_fingersPos[0], L_fingersPos[0]);
-        Vector3 distanceRLIndexs = CalculDistance(R_fingersPos[1], L_fingersPos[1]);
-
-        Debug.Log(distanceRFingers + " - " + distanceRFingers + " - " + distanceRLThumbs + " - " + distanceRLIndexs);
-        bool movementChecked = false;
+        Vector3 distance_RIndex_LThumb = CalculDistance(R_fingersPos[1], L_fingersPos[0]);
+        
+        //Debug.Log(distance_RIndex_LThumb.magnitude);
+        bool movementChecked = (distance_RIndex_LThumb.magnitude < 0.03f);
         _isLeftMvtChecked = movementChecked;
     }
     /*********************************************************/
-    
-    void CheckOpenMenu() {
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
 
+    // Check if 
+    // 1. Distance between L_thumb and R_thumb > 0.35f
+    // 2. Distance between L_index and R_index > 0.35f
+    void CheckOpenMenu() {
         Vector3 distanceThumbs = CalculDistance(R_fingersPos[0], L_fingersPos[0]);
-        Debug.Log(distanceThumbs);
-        bool movementChecked = false;
+        Vector3 distanceIndex = CalculDistance(R_fingersPos[1], L_fingersPos[1]);
+
+        Debug.Log(distanceThumbs.magnitude + " - " + distanceIndex.magnitude);
+        bool movementChecked = (distanceThumbs.magnitude > 0.35f && distanceIndex.magnitude > 0.35f);
         _isOpenMenuChecked = movementChecked;
     }
     /*********************************************************/
+    // Check if 
+    // 1. Distance between L_thumb and R_thumb < 0.07f
+    // 2. Distance between L_index and R_index < 0.03f
     void CheckCloseMenu() {
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-
         Vector3 distanceThumbs = CalculDistance(R_fingersPos[0], L_fingersPos[0]);
-        Debug.Log(distanceThumbs);
-        bool movementChecked = false;
+        Vector3 distanceIndex = CalculDistance(R_fingersPos[1], L_fingersPos[1]);
+        //Debug.Log(distanceThumbs.magnitude + " - " + distanceIndex.magnitude);
+        bool movementChecked = (distanceThumbs.magnitude < 0.07f && distanceIndex.magnitude < 0.03f);
         _isCloseMenuChecked = movementChecked;
     }
     /*********************************************************/
+    // Check if distance between L_thumb and L_index < 0.03f
     void CheckYes() {
-        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
-        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
-
         Vector3 distanceLFingers = CalculDistance(L_fingersPos[0], L_fingersPos[1]);
-        Debug.Log(distanceLFingers);
-        bool movementChecked = false;
+
+        //Debug.Log(distanceLFingers.magnitude);
+        bool movementChecked = (distanceLFingers.magnitude < 0.03f);
         _isYesMvtChecked = movementChecked;
     }
     /*********************************************************/
+    // Check if distance between R_thumb and R_index < 0.03f
     void CheckNo() {
-        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
-        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
-
         Vector3 distanceRFingers = CalculDistance(R_fingersPos[0], R_fingersPos[1]);
-        Debug.Log(distanceRFingers);
-        bool movementChecked = false;
+
+        //Debug.Log(distanceRFingers.magnitude);
+        bool movementChecked = (distanceRFingers.magnitude < 0.03f);
         _isNoMvtChecked = movementChecked;
     }
     /*********************************************************/
@@ -240,6 +218,14 @@ public class LP_Movements : MonoBehaviour {
             _sliderValue = 0.0f;
         if (_sliderValue >= 1.0f)
             _sliderValue = 1.0f;
+    }
+    /*********************************************************/
+
+    void UpdateFingersPositions() {
+        R_fingersPos[0] = R_fingers[0].transform.position;  // R_thumb
+        R_fingersPos[1] = R_fingers[1].transform.position;  // R_index
+        L_fingersPos[0] = L_fingers[0].transform.position;  // L_thumb
+        L_fingersPos[1] = L_fingers[1].transform.position;  // L_index
     }
     /*********************************************************/
 

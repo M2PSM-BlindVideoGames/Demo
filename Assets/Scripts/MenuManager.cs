@@ -24,42 +24,44 @@ public class MenuManager : MonoBehaviour {
 
     private LP_Movements _lpMvts;
 
-	// Use this for initialization
-	void Start () {
+    private List<Button> _btnsList;
+
+///////////////////////////////////////////////////////////////
+/// GENERAL FUNCTIONS /////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+    // Use this for initialization
+    void Start () {
         _volumeSlider = optionPanel.transform.GetChild(1).GetComponent<Slider>();
         _lpMvts = GetComponent<LP_Movements>();
 
         InitializeConfirmationsButtons();
         InitializeMenuButtons();
+        InitializeButtonList();
     }
     /*********************************************************/
 
     // Update is called once per frame
     void Update () {
-        if(_lpMvts.L_hand.activeSelf) {
-            if(_lpMvts.IsRightMvtChecked() && rightBtn.interactable) {
-                Btn_Next();
-            }
-            else if (_lpMvts.IsLeftMvtChecked() && leftBtn.interactable) {
-                Btn_Previous();
-            }
-            else if (_lpMvts.IsCloseMenuChecked()) {
-                if (optionPanel.activeSelf) {
-                    OpenPanel(optionPanel, false);
-                } else {
-                    OpenPanel(confirmationPanel);
-                }
-            }
-            else if(confirmationPanel.activeSelf) {
-                if(_lpMvts.IsYesMvtChecked()) {
-                    Application.Quit();
-                }
-                else if (_lpMvts.IsNoMvtChecked()) {
-                    OpenPanel(confirmationPanel, false);
-                }
-            }
+        // Check hands are active : Check if LeapMotion is active
+        if(_lpMvts.L_hand.activeSelf && _lpMvts.R_hand.activeSelf) {
+            UpdateLeapMotionActions();
         } else {
+            
         }
+    }
+    /*********************************************************/
+
+///////////////////////////////////////////////////////////////
+/// PRIVATE FUNCTIONS /////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+    void InitializeButtonList() {
+        _btnsList = new List<Button>();
+        _btnsList.Add(topBtn);
+        _btnsList.Add(centralBtn);
+        _btnsList.Add(leftBtn);
+        _btnsList.Add(rightBtn);
+        _btnsList.Add(yesBtn);
+        _btnsList.Add(noBtn);
     }
     /*********************************************************/
 
@@ -84,6 +86,48 @@ public class MenuManager : MonoBehaviour {
     }
     /*********************************************************/
 
+    void UpdateLeapMotionActions() {
+        // If rightBtn interactable && right movement check : click right button
+        if(_lpMvts.IsRightMvtChecked() && rightBtn.interactable) {
+            LaunchButtonSound(rightBtn);
+            Btn_Next();
+        }
+        // If leftBtn interactable && left movement check : click left button
+        else if (_lpMvts.IsLeftMvtChecked() && leftBtn.interactable) {
+            LaunchButtonSound(leftBtn);
+            Btn_Previous();
+        }
+        // If closeMenu movement check...
+        else if (_lpMvts.IsCloseMenuChecked()) {
+            // ... && optionPanel visible : close optionPanel
+            if (optionPanel.GetComponent<CanvasGroup>().alpha == 1) {
+                LaunchButtonSound(topBtn);
+                OpenPanel(optionPanel, false);
+            // ... && optionPanel not visible : open confirmationPanel
+            } else {
+                LaunchButtonSound(topBtn);
+                OpenPanel(confirmationPanel);
+            }
+        }
+        // If confirmationPanel is visible : you can quit application or close confirmationPanel
+        else if (confirmationPanel.GetComponent<CanvasGroup>().alpha == 1) {
+            if(_lpMvts.IsYesMvtChecked()) {
+                LaunchButtonSound(leftBtn);
+                Application.Quit();
+            }
+            else if (_lpMvts.IsNoMvtChecked()) {
+                LaunchButtonSound(rightBtn);
+                OpenPanel(confirmationPanel, false);
+            }
+        }
+        // Check Yes movement == click central button
+        else if (_lpMvts.IsYesMvtChecked() && optionPanel.GetComponent<CanvasGroup>().alpha == 0) {
+            LaunchButtonSound(centralBtn);
+            btnMethods[_currentIndex]();
+        }
+    }
+    /*********************************************************/
+
     void Btn_LaunchNewGame() {
         SceneManager.LoadScene(1);
     }
@@ -93,6 +137,14 @@ public class MenuManager : MonoBehaviour {
         a_panel.GetComponent<CanvasGroup>().alpha = a_isClosed ? 1 : 0;
         a_panel.GetComponent<CanvasGroup>().interactable = a_isClosed;
         a_panel.GetComponent<CanvasGroup>().blocksRaycasts = a_isClosed;
+    }
+    /*********************************************************/
+
+    void LaunchButtonSound(Button a_btn) {
+        foreach(Button btn in _btnsList) {
+            btn.GetComponents<AudioSource>()[0].Stop();
+        }
+        a_btn.GetComponents<AudioSource>()[0].Play();
     }
     /*********************************************************/
 
@@ -128,6 +180,10 @@ public class MenuManager : MonoBehaviour {
         OpenPanel(optionPanel);
     }
     /*********************************************************/
+
+///////////////////////////////////////////////////////////////
+/// PUBLIC FUNCTIONS //////////////////////////////////////////
+///////////////////////////////////////////////////////////////
     public void Btn_CloseVolumePanel() {
         OpenPanel(optionPanel, false);
     }
